@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Galaxy Blaster</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:#050816;color:#fff;display:flex;justify-content:center;padding:16px}
+.wrap{width:min(900px,100%)}.hud{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.stat,button{padding:10px 14px;border:1px solid #334155;border-radius:12px;background:#111827;color:#fff;font-weight:700}
+button{cursor:pointer;min-height:44px}.arena{position:relative;overflow:hidden;border:1px solid #334155;border-radius:18px;background:#050816;aspect-ratio:16/10;touch-action:none;user-select:none}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:.7}.ship{position:absolute;width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-bottom:32px solid #38bdf8;transform:translate(-50%,-50%);filter:drop-shadow(0 0 6px #38bdf8)}
+.enemy{position:absolute;width:32px;height:24px;background:#ef4444;border:2px solid #fff;border-radius:45% 45% 55% 55%;transform:translate(-50%,-50%);box-shadow:0 0 8px #ef4444}.enemy:after{content:"";position:absolute;left:9px;right:9px;bottom:-7px;height:7px;background:#f59e0b;border-radius:0 0 8px 8px}
+.laser{position:absolute;width:4px;height:15px;background:#fff;box-shadow:0 0 8px #22d3ee;transform:translate(-50%,-50%);border-radius:3px}.hint{text-align:center;color:#94a3b8;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hud"><div class="stat">🚀 Score: <span id="score">0</span></div><div class="stat">❤️ Lives: <span id="lives">3</span></div><button id="restart">Restart</button></div>
+<div class="arena" id="arena"><div class="ship" id="ship"></div></div>
+<div class="hint" id="hint">Tap where you want the ship to move and fire. Destroy the alien ships!</div>
+</div>
+<script>
+(()=>{const a=document.querySelector('#arena'),p=document.querySelector('#ship'),S=document.querySelector('#score'),L=document.querySelector('#lives'),H=document.querySelector('#hint'),R=document.querySelector('#restart');let x=.5,y=.86,score=0,lives=3,en=[],las=[],run=true,last=0,sp=0;
+function reset(){score=0;lives=3;x=.5;y=.86;en=[];las=[];run=true;sp=0;S.textContent=0;L.textContent=3;H.textContent='Tap where you want the ship to move and fire. Destroy the alien ships!';a.querySelectorAll('.enemy,.laser,.star').forEach(e=>e.remove());for(let i=0;i<45;i++){let e=document.createElement('i');e.className='star';e.style.left=Math.random()*100+'%';e.style.top=Math.random()*100+'%';e.style.opacity=.25+Math.random()*.7;a.appendChild(e)}p.style.left='50%';p.style.top='86%';last=performance.now();requestAnimationFrame(loop)}
+function point(e){let r=a.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}}
+function fire(){let e=document.createElement('i');e.className='laser';e.style.left=x*100+'%';e.style.top=y*100+'%';a.appendChild(e);las.push({x,y,e})}
+function action(e){let q=point(e);x=Math.max(.06,Math.min(.94,q.x));y=Math.max(.1,Math.min(.9,q.y));p.style.left=x*100+'%';p.style.top=y*100+'%';fire()}
+a.addEventListener('pointerdown',action);a.addEventListener('pointermove',e=>{if(e.buttons){let q=point(e);x=Math.max(.06,Math.min(.94,q.x));y=Math.max(.1,Math.min(.9,q.y));p.style.left=x*100+'%';p.style.top=y*100+'%'}});R.addEventListener('click',reset);
+function spawn(){let e=document.createElement('i');e.className='enemy';a.appendChild(e);en.push({x:.08+Math.random()*.84,y:-.05,v:.055+Math.random()*.035,e})}
+function loop(t){if(!run)return;let dt=Math.min(.035,(t-last)/1000);last=t;sp+=dt;if(sp>.65){sp=0;spawn()}
+las.forEach(b=>{b.y-=.9*dt;b.e.style.left=b.x*100+'%';b.e.style.top=b.y*100+'%'});las=las.filter(b=>{if(b.y<-.05){b.e.remove();return false}return true});
+en.forEach(o=>{o.y+=o.v*dt;o.e.style.left=o.x*100+'%';o.e.style.top=o.y*100+'%'});
+for(let i=en.length-1;i>=0;i--){let hit=false;for(let j=las.length-1;j>=0;j--){if(Math.hypot(en[i].x-las[j].x,en[i].y-las[j].y)<.055){en[i].e.remove();las[j].e.remove();en.splice(i,1);las.splice(j,1);score+=10;S.textContent=score;hit=true;break}}if(hit)continue;if(en[i].y>.92){en[i].e.remove();en.splice(i,1);lives--;L.textContent=lives;if(lives<=0){run=false;H.textContent='💥 GAME OVER! Tap Restart to try again.';return}}}requestAnimationFrame(loop)}
+reset()})();
+</script>
+</body>
+</html>
